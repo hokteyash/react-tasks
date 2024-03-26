@@ -1,7 +1,9 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import "./App.css";
 
 function App() {
+  const passwordRef = useRef();
+
   const [length, setLength] = useState(8);
   const [password, setPassword] = useState("");
   const [numbers, setNumbers] = useState(false);
@@ -12,27 +14,31 @@ function App() {
   };
 
   const handleNumberChange = () => {
-    setNumbers(prev => !prev);
-  }
+    setNumbers((prev) => !prev);
+  };
 
   const handleCharacterChange = () => {
-    setCharacters(prev => !prev);
-  } 
+    setCharacters((prev) => !prev);
+  };
+
+  const copyToClipBoard = useCallback(() => {
+    passwordRef.current?.select();
+    window.navigator.clipboard.writeText(password);
+  },[password]);
 
   useEffect(() => {
-    
     let generatedPassword = "";
-    let pwd = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnoprstuvwxyz';
-    if(numbers) pwd+='0123456789';
-    if(characters) pwd+=`.,:;!?'"-_+=*/<>()[]{}%^~@$#&|¢°§`;
+    let pwd = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnoprstuvwxyz";
+    if (numbers) pwd += "0123456789";
+    if (characters) pwd += `.,:;!?'"-_+=*/<>()[]{}%^~@$#&|¢°§`;
 
-    for(let i=1;i<=length;i++){
-      let ranIndex = Math.random()*pwd.length+1;
-      generatedPassword+=pwd.charAt(ranIndex);
+    for (let i = 1; i <= length; i++) {
+      let ranIndex = Math.floor(Math.random() * pwd.length);
+      generatedPassword += pwd.charAt(ranIndex);
     }
 
     setPassword(generatedPassword);
-  }, [length,numbers,characters]);
+  }, [length, numbers, characters]);
 
   return (
     <div className="w-screen h-screen overflow-x-hidden flex justify-center items-center">
@@ -43,11 +49,14 @@ function App() {
         <div className="flex items-center justify-center m-6">
           <input
             type="text"
-            className="w-[70%] h-10 rounded-lg border-1 border-black bg-white"
+            className="w-[70%] h-10 rounded-lg border-1 border-black bg-white p-2"
             value={password}
-            disabled
+            ref={passwordRef}
           />
-          <div className="bg-emerald-300 p-[0.5rem] ml-[-10px] rounded-e-lg font-semibold cursor-pointer">
+          <div
+            className="bg-emerald-300 p-[0.5rem] ml-[-10px] rounded-e-lg font-semibold cursor-pointer"
+            onClick={copyToClipBoard}
+          >
             copy
           </div>
         </div>
@@ -69,11 +78,11 @@ function App() {
 
           <div className="flex items-center ml-4 gap-2">
             <div className="flex items-center gap-2">
-              <input type="checkbox" onChange={handleNumberChange}/>
+              <input type="checkbox" onChange={handleNumberChange} />
               <div className="text-lg text-yellow-300 font-medium">Numbers</div>
             </div>
             <div className="flex items-center gap-2">
-              <input type="checkbox" onChange={handleCharacterChange}/>
+              <input type="checkbox" onChange={handleCharacterChange} />
               <div className="text-lg text-yellow-300 font-medium">
                 Characters
               </div>
