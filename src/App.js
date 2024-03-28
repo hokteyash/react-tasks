@@ -2,121 +2,75 @@ import { useCallback, useState } from "react";
 import "./App.css";
 import Button from "./UI/Button";
 import { buttonData } from "./utility/buttonData";
-import { isOperator } from "./utility/checkForOperator";
+import {
+  anyOperator,
+  isOperator,
+  solveArithmeticExpression,
+} from "./utility/checkForOperator";
+import ShowHistoryCalculation from "./UI/ShowHistoryCalculation";
 const outerContainerCss =
   "h-screen w-screen overflow-x-hidden flex flex-col items-center justify-center";
-let isFirstOperand = true;
 
 function App() {
-  const [expression, setExpression] = useState({
-    firstOperand: "",
-    operator: "",
-    secondOperand: "",
-    result: "",
-  });
+  const [expression, setExpression] = useState("");
+  const [historyCalculation, setHistoryCalculation] = useState([]);
+
+  console.log(historyCalculation);
 
   const handleClick = useCallback(
     (label) => {
+      if (label === "AC") {
+        setExpression("");
+        return;
+      }
+
       if (isOperator(label)) {
-        isFirstOperand = false;
-        setExpression((prevExpression) => {
-          return {
-            ...prevExpression,
-            operator: label,
-          };
-        });
-      } else if (label === "=") {
-        let result = "";
-
-        switch (expression.operator) {
-          case "+": {
-            result =
-              Number(expression.firstOperand) +
-              Number(expression.secondOperand);
-            break;
+        if (anyOperator(expression)) {
+          const resultObj = solveArithmeticExpression(expression);
+          if (label !== "=") setExpression(resultObj.result.toFixed(2) + label);
+          else {
+            setExpression(resultObj.result.toFixed(2));
           }
-          case "-": {
-            result =
-              Number(expression.firstOperand) -
-              Number(expression.secondOperand);
-            break;
-          }
-          case "X": {
-            result =
-              Number(expression.firstOperand) *
-              Number(expression.secondOperand);
-            break;
-          }
-          case "/": {
-            result =
-              Number(expression.firstOperand) /
-              Number(expression.secondOperand);
-            break;
-          }
-          case "%": {
-            result =
-              Number(expression.firstOperand) %
-              Number(expression.secondOperand);
-            break;
-          }
-          default: {
-            break;
-          }
+          setHistoryCalculation((prevHistory) => [
+            `${resultObj.firstOperand} ${resultObj.operator} ${resultObj.secondOperand} = ${resultObj.result}`,
+            ...prevHistory,
+          ]);
+        } else {
+          setExpression((prevExpression) => prevExpression + label);
         }
-
-        console.log(result);
-
-        setExpression((prevExpression) => ({
-          ...prevExpression,
-          result: result,
-        }));
-      } else if (isFirstOperand) {
-        setExpression((prevExpression) => {
-          return {
-            ...prevExpression,
-            firstOperand: prevExpression.firstOperand + label,
-          };
-        });
-      } else if (!isFirstOperand) {
-        setExpression((prevExpression) => {
-          return {
-            ...prevExpression,
-            secondOperand: prevExpression.secondOperand + label,
-          };
-        });
       } else {
-        return {
-          ...expression,
-        };
+        setExpression((prevExpression) => prevExpression + label);
       }
     },
     [expression]
   );
 
   return (
-    <div className={outerContainerCss}>
-      <div className="w-[30%]">
-        <input
-          type="text"
-          className="w-full h-12 m-0 px-2 text-2xl font-bold bg-slate-300 outline-none cursor-text"
-          value={
-            expression.result === ""
-              ? `${expression.firstOperand} ${expression.operator} ${expression.secondOperand}`
-              : `${expression.firstOperand} ${expression.operator} ${expression.secondOperand} = ${expression.result}`
-          }
-          disabled
-        />
-        <div className="w-full flex flex-wrap m-0">
-          {buttonData.map(({ id, data }) => {
-            return (
-              <Button key={id} handleClick={handleClick}>
-                {data}
-              </Button>
-            );
-          })}
+    <>
+      <div className={outerContainerCss}>
+        <div className="w-[30%]">
+          <input
+            type="text"
+            className="w-full h-12 m-0 px-2 text-2xl font-bold bg-slate-300 outline-none cursor-text"
+            value={expression}
+            disabled
+          />
+          <div className="w-full flex flex-wrap m-0">
+            {buttonData.map(({ id, data }) => {
+              return (
+                <Button key={id} handleClick={handleClick}>
+                  {data}
+                </Button>
+              );
+            })}
+          </div>
         </div>
       </div>
-    </div>
+
+      <div className="mt-2 flex flex-col items-center">
+        <ShowHistoryCalculation historyCalculation={historyCalculation} />
+      </div>
+    </>
   );
 }
 
