@@ -67,7 +67,8 @@ function App() {
         </div>
       </div>
 
-      <div className="mt-2 flex flex-col items-center">
+      <div className="flex flex-col items-center">
+        <h2 className="my-2 text-2xl font-bold"> Calculation History </h2>
         <ShowHistoryCalculation historyCalculation={historyCalculation} />
       </div>
     </>
